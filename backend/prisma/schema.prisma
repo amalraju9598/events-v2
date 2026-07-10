@@ -38,7 +38,8 @@ model User {
   updated_at           DateTime  @updatedAt
 
   // Relations
-  user_roles UserRole[]
+  user_roles  UserRole[]
+  event_types EventType[]
 
   @@map("users")
 }
@@ -100,4 +101,26 @@ model RolePermission {
 
   @@id([role_id, permission_id])
   @@map("role_permissions")
+}
+
+// ─────────────────────────────────────────────────────────
+//  Event Types
+// ─────────────────────────────────────────────────────────
+
+model EventType {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  icon        String?  @db.VarChar(255)
+  identifier  String   @db.VarChar(255)
+  user_id     String?  @db.VarChar(36)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relation
+  user User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  // Unique constraint
+  @@unique([identifier, user_id])
+  @@map("event_types")
 }
