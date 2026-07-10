@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -26,10 +27,16 @@ export class UsersController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all users' })
-  @ApiResponse({ status: 200, description: 'List of all users.' })
-  findAll() {
-    return this.usersService.findAll();
+  @ApiOperation({ summary: 'Retrieve all users with pagination and filtering' })
+  @ApiResponse({ status: 200, description: 'Paginated list of users.' })
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    return this.usersService.findAll(pageNum, limitNum, search);
   }
 
   @Get(':id')

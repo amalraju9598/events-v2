@@ -12,6 +12,8 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
+import { AuthProvider } from 'src/auth/auth-context';
+
 type AppProps = {
   children: React.ReactNode;
 };
@@ -39,10 +41,12 @@ export default function App({ children }: AppProps) {
   );
 
   return (
-    <ThemeProvider>
-      {children}
-      {githubButton()}
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        {children}
+        {githubButton()}
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

@@ -8,35 +8,62 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+import Alert from '@mui/material/Alert';
 
 import { useRouter } from 'src/routes/hooks';
-
+import { useAuth } from 'src/auth/auth-context';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
 export function SignInView() {
   const router = useRouter();
+  const { login } = useAuth();
 
+  const [email, setEmail] = useState('superadmin@example.com');
+  const [password, setPassword] = useState('SuperAdminPassword123!');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignIn = useCallback(() => {
-    router.push('/');
-  }, [router]);
+  const handleSignIn = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await login(email, password);
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [login, email, password, router]);
 
   const renderForm = (
     <Box
+      component="form"
+      onSubmit={handleSignIn}
       sx={{
         display: 'flex',
         alignItems: 'flex-end',
         flexDirection: 'column',
+        width: 1,
       }}
     >
+      {error && (
+        <Alert severity="error" sx={{ width: 1, mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
       <TextField
         fullWidth
         name="email"
         label="Email address"
-        defaultValue="hello@gmail.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         sx={{ mb: 3 }}
         slotProps={{
           inputLabel: { shrink: true },
@@ -51,7 +78,8 @@ export function SignInView() {
         fullWidth
         name="password"
         label="Password"
-        defaultValue="@demo1234"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         type={showPassword ? 'text' : 'password'}
         slotProps={{
           inputLabel: { shrink: true },
@@ -74,9 +102,9 @@ export function SignInView() {
         type="submit"
         color="inherit"
         variant="contained"
-        onClick={handleSignIn}
+        disabled={isSubmitting}
       >
-        Sign in
+        {isSubmitting ? 'Signing in...' : 'Sign in'}
       </Button>
     </Box>
   );

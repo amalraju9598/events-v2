@@ -18,20 +18,21 @@ import { Iconify } from 'src/components/iconify';
 export type UserProps = {
   id: string;
   name: string;
-  role: string;
-  status: string;
-  company: string;
-  avatarUrl: string;
-  isVerified: boolean;
+  email: string;
+  username: string | null;
+  mobile: string | null;
+  user_type: string;
 };
 
 type UserTableRowProps = {
   row: UserProps;
   selected: boolean;
   onSelectRow: () => void;
+  onEditRow: () => void;
+  onDeleteRow: () => void;
 };
 
-export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, onEditRow, onDeleteRow }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -57,25 +58,23 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
               alignItems: 'center',
             }}
           >
-            <Avatar alt={row.name} src={row.avatarUrl} />
+            <Avatar alt={row.name} src="" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+              {row.name.charAt(0).toUpperCase()}
+            </Avatar>
             {row.name}
           </Box>
         </TableCell>
 
-        <TableCell>{row.company}</TableCell>
+        <TableCell>{row.email}</TableCell>
 
-        <TableCell>{row.role}</TableCell>
+        <TableCell>{row.username || '-'}</TableCell>
 
-        <TableCell align="center">
-          {row.isVerified ? (
-            <Iconify width={22} icon="solar:check-circle-bold" sx={{ color: 'success.main' }} />
-          ) : (
-            '-'
-          )}
-        </TableCell>
+        <TableCell>{row.mobile || '-'}</TableCell>
 
         <TableCell>
-          <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
+          <Label color={(row.user_type === 'super_admin' && 'error') || (row.user_type === 'client' && 'warning') || 'info'}>
+            {row.user_type}
+          </Label>
         </TableCell>
 
         <TableCell align="right">
@@ -108,12 +107,12 @@ export function UserTableRow({ row, selected, onSelectRow }: UserTableRowProps) 
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
+          <MenuItem onClick={() => { handleClosePopover(); onEditRow(); }}>
             <Iconify icon="solar:pen-bold" />
             Edit
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={() => { handleClosePopover(); onDeleteRow(); }} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
           </MenuItem>

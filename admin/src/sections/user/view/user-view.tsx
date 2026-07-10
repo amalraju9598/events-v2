@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -8,19 +8,29 @@ import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 
-import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
-
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { api } from 'src/utils/api-client';
 
 import { TableNoData } from '../table-no-data';
 import { UserTableRow } from '../user-table-row';
 import { UserTableHead } from '../user-table-head';
 import { TableEmptyRows } from '../table-empty-rows';
 import { UserTableToolbar } from '../user-table-toolbar';
-import { emptyRows, applyFilter, getComparator } from '../utils';
+import { applyFilter, getComparator } from '../utils';
 
 import type { UserProps } from '../user-table-row';
 
@@ -29,12 +39,133 @@ import type { UserProps } from '../user-table-row';
 export function UserView() {
   const table = useTable();
 
+  const [users, setUsers] = useState<UserProps[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filterName, setFilterName] = useState('');
 
+  // Form Modal Dialog State
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProps | null>(null);
+  const [formFields, setFormFields] = useState({
+    name: '',
+    email: '',
+    mobile: '',
+    username: '',
+    password: '',
+    user_type: 'user',
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submittingForm, setSubmittingForm] = useState(false);
+
+  // Fetch users list from paginated endpoint
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Material UI table page is 0-indexed, API is 1-indexed
+      const page = table.page + 1;
+      const limit = table.rowsPerPage;
+      const response = await api.get(`/users?page=${page}&limit=${limit}&search=${filterName}`);
+      setUsers(response.data || []);
+      setTotalUsers(response.total || 0);
+    } catch (err: any) {
+      console.error('Error fetching users:', err);
+      setError(err.message || 'Failed to fetch users');
+    } finally {
+      setLoading(false);
+    }
+  }, [table.page, table.rowsPerPage, filterName]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Open dialog for creation
+  const handleOpenCreate = () => {
+    setEditingUser(null);
+    setFormFields({
+      name: '',
+      email: '',
+      mobile: '',
+      username: '',
+      password: '',
+      user_type: 'user',
+    });
+    setFormError(null);
+    setDialogOpen(true);
+  };
+
+  // Open dialog for update
+  const handleOpenEdit = (user: UserProps) => {
+    setEditingUser(user);
+    setFormFields({
+      name: user.name,
+      email: user.email,
+      mobile: user.mobile || '',
+      username: user.username || '',
+      password: '', // Password is optional on update
+      user_type: user.user_type,
+    });
+    setFormError(null);
+    setDialogOpen(true);
+  };
+
+  // Handle form submit (create or update)
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    setSubmittingForm(true);
+
+    try {
+      const payload: any = {
+        name: formFields.name,
+        email: formFields.email,
+        mobile: formFields.mobile || undefined,
+        username: formFields.username || undefined,
+        user_type: formFields.user_type,
+      };
+
+      if (editingUser) {
+        if (formFields.password) {
+          payload.password = formFields.password;
+        }
+        await api.patch(`/users/${editingUser.id}`, payload);
+      } else {
+        if (!formFields.password) {
+          throw new Error('Password is required when creating a new user.');
+        }
+        payload.password = formFields.password;
+        await api.post('/users', payload);
+      }
+
+      setDialogOpen(false);
+      fetchUsers();
+    } catch (err: any) {
+      setFormError(err.message || 'An error occurred while saving user data.');
+    } finally {
+      setSubmittingForm(false);
+    }
+  };
+
+  // Handle delete user
+  const handleDeleteRow = useCallback(async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await api.delete(`/users/${id}`);
+        fetchUsers();
+      } catch (err: any) {
+        alert(err.message || 'Failed to delete user.');
+      }
+    }
+  }, [fetchUsers]);
+
+  // Client-side sorting for the current paginated page
   const dataFiltered: UserProps[] = applyFilter({
-    inputData: _users,
+    inputData: users,
     comparator: getComparator(table.order, table.orderBy),
-    filterName,
+    filterName: '', // Skip client-side filtering because server did it
   });
 
   const notFound = !dataFiltered.length && !!filterName;
@@ -55,10 +186,17 @@ export function UserView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={handleOpenCreate}
         >
           New user
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       <Card>
         <UserTableToolbar
@@ -76,45 +214,56 @@ export function UserView() {
               <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={users.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    _users.map((user) => user.id)
+                    users.map((user) => user.id)
                   )
                 }
                 headLabel={[
                   { id: 'name', label: 'Name' },
-                  { id: 'company', label: 'Company' },
-                  { id: 'role', label: 'Role' },
-                  { id: 'isVerified', label: 'Verified', align: 'center' },
-                  { id: 'status', label: 'Status' },
+                  { id: 'email', label: 'Email' },
+                  { id: 'username', label: 'Username' },
+                  { id: 'mobile', label: 'Mobile' },
+                  { id: 'user_type', label: 'User Type' },
                   { id: '' },
                 ]}
               />
               <TableBody>
-                {dataFiltered
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row) => (
+                {loading ? (
+                  <TableEmptyRows
+                    height={68}
+                    emptyRows={5}
+                    children={
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                        <CircularProgress />
+                      </Box>
+                    }
+                  />
+                ) : (
+                  dataFiltered.map((row) => (
                     <UserTableRow
                       key={row.id}
                       row={row}
                       selected={table.selected.includes(row.id)}
                       onSelectRow={() => table.onSelectRow(row.id)}
+                      onEditRow={() => handleOpenEdit(row)}
+                      onDeleteRow={() => handleDeleteRow(row.id)}
                     />
-                  ))}
+                  ))
+                )}
 
-                <TableEmptyRows
-                  height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
-                />
+                {!loading && dataFiltered.length < table.rowsPerPage && (
+                  <TableEmptyRows
+                    height={68}
+                    emptyRows={table.rowsPerPage - dataFiltered.length}
+                  />
+                )}
 
-                {notFound && <TableNoData searchQuery={filterName} />}
+                {notFound && !loading && <TableNoData searchQuery={filterName} />}
               </TableBody>
             </Table>
           </TableContainer>
@@ -123,13 +272,85 @@ export function UserView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={totalUsers}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={table.onChangeRowsPerPage}
         />
       </Card>
+
+      {/* User Create/Edit Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingUser ? 'Edit User' : 'New User'}</DialogTitle>
+        <form onSubmit={handleSubmitForm}>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            {formError && <Alert severity="error">{formError}</Alert>}
+
+            <TextField
+              label="Name"
+              fullWidth
+              required
+              value={formFields.name}
+              onChange={(e) => setFormFields({ ...formFields, name: e.target.value })}
+            />
+
+            <TextField
+              label="Email"
+              fullWidth
+              required
+              type="email"
+              value={formFields.email}
+              onChange={(e) => setFormFields({ ...formFields, email: e.target.value })}
+            />
+
+            <TextField
+              label="Username"
+              fullWidth
+              value={formFields.username}
+              onChange={(e) => setFormFields({ ...formFields, username: e.target.value })}
+            />
+
+            <TextField
+              label="Mobile Number"
+              fullWidth
+              value={formFields.mobile}
+              onChange={(e) => setFormFields({ ...formFields, mobile: e.target.value })}
+            />
+
+            <TextField
+              label="Password"
+              fullWidth
+              required={!editingUser}
+              type="password"
+              placeholder={editingUser ? 'Leave blank to keep current' : ''}
+              value={formFields.password}
+              onChange={(e) => setFormFields({ ...formFields, password: e.target.value })}
+            />
+
+            <FormControl fullWidth required>
+              <InputLabel id="user-type-label">User Type</InputLabel>
+              <Select
+                labelId="user-type-label"
+                label="User Type"
+                value={formFields.user_type}
+                onChange={(e) => setFormFields({ ...formFields, user_type: e.target.value })}
+              >
+                <MenuItem value="user">User</MenuItem>
+                <MenuItem value="client">Client</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button onClick={() => setDialogOpen(false)} disabled={submittingForm}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" color="inherit" disabled={submittingForm}>
+              {submittingForm ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </DashboardContent>
   );
 }
