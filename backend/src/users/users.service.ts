@@ -16,7 +16,9 @@ export class UsersService {
     const { password, email, mobile, username, user_type } = createUserDto;
 
     if (user_type === 'super_admin') {
-      throw new ConflictException('Cannot create a user with super_admin type.');
+      throw new ConflictException(
+        'Cannot create a user with super_admin type.',
+      );
     }
 
     // Check uniqueness

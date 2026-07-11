@@ -10,7 +10,7 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
-import { ProtectedRoute, GuestRoute } from 'src/auth/protected-route';
+import { GuestRoute, ProtectedRoute } from 'src/auth/protected-route';
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +19,8 @@ export const BlogPage = lazy(() => import('src/pages/blog'));
 export const UserPage = lazy(() => import('src/pages/user'));
 export const EventTypesPage = lazy(() => import('src/pages/event-types'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
-export const ProductsPage = lazy(() => import('src/pages/products'));
+export const TemplatesPage = lazy(() => import('src/pages/templates'));
+export const FieldsPage = lazy(() => import('src/pages/fields'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -57,7 +58,8 @@ export const routesSection: RouteObject[] = [
       { index: true, element: <DashboardPage /> },
       { path: 'user', element: <UserPage /> },
       { path: 'event-types', element: <EventTypesPage /> },
-      { path: 'products', element: <ProductsPage /> },
+      { path: 'templates', element: <TemplatesPage /> },
+      { path: 'fields', element: <FieldsPage /> },
       { path: 'blog', element: <BlogPage /> },
     ],
   },

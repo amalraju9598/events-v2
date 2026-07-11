@@ -1,7 +1,9 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
+
 import { useAuth } from './auth-context';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {

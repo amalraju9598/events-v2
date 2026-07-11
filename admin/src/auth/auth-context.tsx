@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, createContext } from 'react';
+
 import { CONFIG } from 'src/config-global';
 
 type UserType = {

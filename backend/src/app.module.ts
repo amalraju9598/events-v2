@@ -5,9 +5,18 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { EventTypesModule } from './event-types/event-types.module';
+import { TemplatesModule } from './templates/templates.module';
+import { FieldsModule } from './fields/fields.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, EventTypesModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    EventTypesModule,
+    TemplatesModule,
+    FieldsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -10,8 +10,8 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TableBody from '@mui/material/TableBody';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
+import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import DialogContent from '@mui/material/DialogContent';
@@ -27,108 +27,75 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
+import { FieldTableRow } from '../field-table-row';
 import { TableNoData } from '../../user/table-no-data';
 import { UserTableHead } from '../../user/user-table-head';
-import { EventTypeTableRow } from '../event-type-table-row';
 import { TableEmptyRows } from '../../user/table-empty-rows';
 import { UserTableToolbar } from '../../user/user-table-toolbar';
+import { useTable } from '../../event-types/view/event-types-view';
 
-import type { EventTypeProps } from '../event-type-table-row';
-
-type SimpleUser = {
-  id: string;
-  name: string;
-  email: string;
-};
+import type { FieldProps } from '../field-table-row';
 
 // ----------------------------------------------------------------------
 
-export function EventTypesView() {
+export function FieldsView() {
   const table = useTable();
 
-  const [eventTypes, setEventTypes] = useState<EventTypeProps[]>([]);
-  const [totalEventTypes, setTotalEventTypes] = useState(0);
+  const [fields, setFields] = useState<FieldProps[]>([]);
+  const [totalFields, setTotalFields] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterName, setFilterName] = useState('');
 
-  // Dropdown options
-  const [usersList, setUsersList] = useState<SimpleUser[]>([]);
-
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingEventType, setEditingEventType] = useState<EventTypeProps | null>(null);
+  const [editingField, setEditingField] = useState<FieldProps | null>(null);
   const [formFields, setFormFields] = useState({
-    name: '',
     identifier: '',
-    description: '',
-    icon: 'solar:tag-bold',
-    user_id: '',
+    type: 'text' as 'text' | 'image' | 'date' | 'long_text' | 'location',
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [submittingForm, setSubmittingForm] = useState(false);
 
-  // Fetch event types list
-  const fetchEventTypes = useCallback(async () => {
+  // Fetch fields list
+  const fetchFields = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const page = table.page + 1;
       const limit = table.rowsPerPage;
-      const response = await api.get(`/event-types?page=${page}&limit=${limit}&search=${filterName}`);
-      setEventTypes(response.data || []);
-      setTotalEventTypes(response.total || 0);
+      const response = await api.get(`/fields?page=${page}&limit=${limit}&search=${filterName}`);
+      setFields(response.data || []);
+      setTotalFields(response.total || 0);
     } catch (err: any) {
-      console.error('Error fetching event types:', err);
-      setError(err.message || 'Failed to fetch event types');
+      console.error('Error fetching fields:', err);
+      setError(err.message || 'Failed to fetch fields');
     } finally {
       setLoading(false);
     }
   }, [table.page, table.rowsPerPage, filterName]);
 
-  // Fetch users for selector
-  const fetchUsers = useCallback(async () => {
-    try {
-      const response = await api.get('/users?limit=100');
-      setUsersList(response.data || []);
-    } catch (err: any) {
-      console.error('Failed to load users for selector:', err);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchEventTypes();
-  }, [fetchEventTypes]);
-
-  useEffect(() => {
-    if (dialogOpen) {
-      fetchUsers();
-    }
-  }, [dialogOpen, fetchUsers]);
+    fetchFields();
+  }, [fetchFields]);
 
   // Open create dialog
   const handleOpenCreate = () => {
-    setEditingEventType(null);
+    setEditingField(null);
     setFormFields({
-      name: '',
       identifier: '',
-      description: '',
-      icon: 'solar:tag-bold',
-      user_id: '', // Empty means null/Global
+      type: 'text',
     });
     setFormError(null);
     setDialogOpen(true);
   };
 
   // Open edit dialog
-  const handleOpenEdit = (eventType: EventTypeProps) => {
-    setEditingEventType(eventType);
+  const handleOpenEdit = (field: FieldProps) => {
+    setEditingField(field);
     setFormFields({
-      name: eventType.name,
-      identifier: eventType.identifier,
-      description: eventType.description || '',
-      icon: eventType.icon || 'solar:tag-bold',
-      user_id: eventType.user_id || '',
+      identifier: field.identifier,
+      type: field.type,
     });
     setFormError(null);
     setDialogOpen(true);
@@ -141,24 +108,21 @@ export function EventTypesView() {
     setSubmittingForm(true);
 
     try {
-      const payload: any = {
-        name: formFields.name,
+      const payload = {
         identifier: formFields.identifier,
-        description: formFields.description || null,
-        icon: formFields.icon || null,
-        user_id: formFields.user_id || null, // Convert empty string to null for global
+        type: formFields.type,
       };
 
-      if (editingEventType) {
-        await api.patch(`/event-types/${editingEventType.id}`, payload);
+      if (editingField) {
+        await api.patch(`/fields/${editingField.id}`, payload);
       } else {
-        await api.post('/event-types', payload);
+        await api.post('/fields', payload);
       }
 
       setDialogOpen(false);
-      fetchEventTypes();
+      fetchFields();
     } catch (err: any) {
-      setFormError(err.message || 'An error occurred while saving the event type.');
+      setFormError(err.message || 'An error occurred while saving the field.');
     } finally {
       setSubmittingForm(false);
     }
@@ -166,33 +130,25 @@ export function EventTypesView() {
 
   // Handle delete
   const handleDeleteRow = useCallback(async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this event type?')) {
+    if (window.confirm('Are you sure you want to delete this field?')) {
       try {
-        await api.delete(`/event-types/${id}`);
-        fetchEventTypes();
+        await api.delete(`/fields/${id}`);
+        fetchFields();
       } catch (err: any) {
-        alert(err.message || 'Failed to delete event type.');
+        alert(err.message || 'Failed to delete field.');
       }
     }
-  }, [fetchEventTypes]);
+  }, [fetchFields]);
 
-  // Sorting client-side on current paginated data page
-  const dataFiltered = [...eventTypes].sort((a, b) => {
+  const dataFiltered = [...fields].sort((a, b) => {
     const isDesc = table.order === 'desc';
-    const key = table.orderBy as keyof EventTypeProps;
+    const key = table.orderBy as keyof FieldProps;
 
     const valA = a[key];
     const valB = b[key];
 
     if (valA === null || valA === undefined) return 1;
     if (valB === null || valB === undefined) return -1;
-
-    // Handle nested user object sort if sorting by owner user name
-    if (key === 'user') {
-      const nameA = a.user?.name || '';
-      const nameB = b.user?.name || '';
-      return isDesc ? nameB.localeCompare(nameA) : nameA.localeCompare(nameB);
-    }
 
     if (typeof valA === 'string' && typeof valB === 'string') {
       return isDesc ? valB.localeCompare(valA) : valA.localeCompare(valB);
@@ -215,7 +171,7 @@ export function EventTypesView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Event Types
+          Template Fields
         </Typography>
         <Button
           variant="contained"
@@ -223,7 +179,7 @@ export function EventTypesView() {
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={handleOpenCreate}
         >
-          New Event Type
+          New Field
         </Button>
       </Box>
 
@@ -249,20 +205,18 @@ export function EventTypesView() {
               <UserTableHead
                 order={table.order}
                 orderBy={table.orderBy}
-                rowCount={eventTypes.length}
+                rowCount={fields.length}
                 numSelected={table.selected.length}
                 onSort={table.onSort}
                 onSelectAllRows={(checked) =>
                   table.onSelectAllRows(
                     checked,
-                    eventTypes.map((et) => et.id)
+                    fields.map((f) => f.id)
                   )
                 }
                 headLabel={[
-                  { id: 'name', label: 'Name / Identifier' },
-                  { id: 'description', label: 'Description' },
-                  { id: 'icon', label: 'Icon' },
-                  { id: 'user', label: 'Owner' },
+                  { id: 'identifier', label: 'Field Identifier' },
+                  { id: 'type', label: 'Type' },
                   { id: '' },
                 ]}
               />
@@ -279,7 +233,7 @@ export function EventTypesView() {
                   />
                 ) : (
                   dataFiltered.map((row) => (
-                    <EventTypeTableRow
+                    <FieldTableRow
                       key={row.id}
                       row={row}
                       selected={table.selected.includes(row.id)}
@@ -306,7 +260,7 @@ export function EventTypesView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={totalEventTypes}
+          count={totalFields}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
@@ -314,34 +268,17 @@ export function EventTypesView() {
         />
       </Card>
 
-      {/* Event Type Create/Edit Dialog */}
+      {/* Field Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingEventType ? 'Edit Event Type' : 'New Event Type'}</DialogTitle>
+        <DialogTitle>{editingField ? 'Edit Field' : 'New Field'}</DialogTitle>
         <form onSubmit={handleSubmitForm}>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
             {formError && <Alert severity="error">{formError}</Alert>}
 
             <TextField
-              label="Name"
+              label="Field Identifier"
               fullWidth
               required
-              value={formFields.name}
-              onChange={(e) => {
-                const nameVal = e.target.value;
-                const identifierVal = nameVal.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                setFormFields({
-                  ...formFields,
-                  name: nameVal,
-                  identifier: identifierVal,
-                });
-              }}
-            />
-
-            <TextField
-              label="Identifier"
-              fullWidth
-              required
-              placeholder="e.g. meeting_type_1"
               value={formFields.identifier}
               onChange={(e) => {
                 const sanitizedVal = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -350,42 +287,23 @@ export function EventTypesView() {
                   identifier: sanitizedVal,
                 });
               }}
+              placeholder="e.g. guest_email"
+              helperText="Only lowercase letters, numbers, and underscores are allowed."
             />
 
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={formFields.description}
-              onChange={(e) => setFormFields({ ...formFields, description: e.target.value })}
-            />
-
-            <TextField
-              label="Icon (Solar iconify class)"
-              fullWidth
-              value={formFields.icon}
-              onChange={(e) => setFormFields({ ...formFields, icon: e.target.value })}
-              placeholder="e.g. solar:calendar-bold"
-              helperText="You can use any iconify icon path (e.g. solar:tag-bold, solar:calendar-bold)"
-            />
-
-            <FormControl fullWidth>
-              <InputLabel id="owner-user-label">Owner User (Optional)</InputLabel>
+            <FormControl fullWidth required>
+              <InputLabel id="field-type-label">Field Type</InputLabel>
               <Select
-                labelId="owner-user-label"
-                label="Owner User (Optional)"
-                value={formFields.user_id}
-                onChange={(e) => setFormFields({ ...formFields, user_id: e.target.value })}
+                labelId="field-type-label"
+                label="Field Type"
+                value={formFields.type}
+                onChange={(e) => setFormFields({ ...formFields, type: e.target.value as any })}
               >
-                <MenuItem value="">
-                  <em>Global (No User)</em>
-                </MenuItem>
-                {usersList.map((user) => (
-                  <MenuItem key={user.id} value={user.id}>
-                    {user.name} ({user.email})
-                  </MenuItem>
-                ))}
+                <MenuItem value="text">Text (Short input)</MenuItem>
+                <MenuItem value="image">Image (Upload/URL)</MenuItem>
+                <MenuItem value="date">Date picker</MenuItem>
+                <MenuItem value="long_text">Long text (Textarea)</MenuItem>
+                <MenuItem value="location">Location picker</MenuItem>
               </Select>
             </FormControl>
           </DialogContent>
@@ -401,72 +319,4 @@ export function EventTypesView() {
       </Dialog>
     </DashboardContent>
   );
-}
-
-// ----------------------------------------------------------------------
-
-export function useTable() {
-  const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('name');
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-
-  const onSort = useCallback(
-    (id: string) => {
-      const isAsc = orderBy === id && order === 'asc';
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
-    },
-    [order, orderBy]
-  );
-
-  const onSelectAllRows = useCallback((checked: boolean, newSelecteds: string[]) => {
-    if (checked) {
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  }, []);
-
-  const onSelectRow = useCallback(
-    (inputValue: string) => {
-      const newSelected = selected.includes(inputValue)
-        ? selected.filter((value) => value !== inputValue)
-        : [...selected, inputValue];
-
-      setSelected(newSelected);
-    },
-    [selected]
-  );
-
-  const onResetPage = useCallback(() => {
-    setPage(0);
-  }, []);
-
-  const onChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
-
-  const onChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      onResetPage();
-    },
-    [onResetPage]
-  );
-
-  return {
-    page,
-    order,
-    onSort,
-    orderBy,
-    selected,
-    rowsPerPage,
-    onSelectRow,
-    onResetPage,
-    onChangePage,
-    onSelectAllRows,
-    onChangeRowsPerPage,
-  };
 }

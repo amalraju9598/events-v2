@@ -21,13 +21,18 @@ export class EventTypesController {
   @Post()
   @ApiOperation({ summary: 'Create a new event type' })
   @ApiResponse({ status: 201, description: 'Event type successfully created.' })
-  @ApiResponse({ status: 409, description: 'Event type identifier + user_id already exists.' })
+  @ApiResponse({
+    status: 409,
+    description: 'Event type identifier + user_id already exists.',
+  })
   create(@Body() createEventTypeDto: CreateEventTypeDto) {
     return this.eventTypesService.create(createEventTypeDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all event types with pagination and filtering' })
+  @ApiOperation({
+    summary: 'Retrieve all event types with pagination and filtering',
+  })
   @ApiResponse({ status: 200, description: 'Paginated list of event types.' })
   findAll(
     @Query('page') page?: string,

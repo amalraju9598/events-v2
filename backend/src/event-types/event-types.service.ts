@@ -131,7 +131,10 @@ export class EventTypesService {
     const current = await this.findOne(id);
 
     const identifier = updateEventTypeDto.identifier ?? current.identifier;
-    const user_id = updateEventTypeDto.user_id !== undefined ? updateEventTypeDto.user_id : current.user_id;
+    const user_id =
+      updateEventTypeDto.user_id !== undefined
+        ? updateEventTypeDto.user_id
+        : current.user_id;
 
     // Check if the update violates unique constraint
     if (identifier !== current.identifier || user_id !== current.user_id) {

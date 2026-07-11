@@ -1,15 +1,15 @@
 import { CONFIG } from 'src/config-global';
 
-import { EventTypesView } from 'src/sections/event-types/view';
+import { FieldsView } from 'src/sections/fields/view';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Event Types - ${CONFIG.appName}`}</title>
+      <title>{`Fields - ${CONFIG.appName}`}</title>
 
-      <EventTypesView />
+      <FieldsView />
     </>
   );
 }

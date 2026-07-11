@@ -1,5 +1,19 @@
-import { Controller, Post, Get, Body, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  UseGuards,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './services/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -12,7 +26,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login a user and retrieve a JWT token' })
-  @ApiResponse({ status: 200, description: 'Login successful, returns the JWT access token.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful, returns the JWT access token.',
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials.' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
@@ -33,7 +50,10 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get current user profile details' })
-  @ApiResponse({ status: 200, description: 'Returns the user details along with roles and permissions.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the user details along with roles and permissions.',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async me(@Req() req) {
     return req.user;

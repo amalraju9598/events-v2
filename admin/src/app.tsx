@@ -7,7 +7,6 @@ import { usePathname } from 'src/routes/hooks';
 import { ThemeProvider } from 'src/theme/theme-provider';
 
 // ----------------------------------------------------------------------
-
 import { AuthProvider } from 'src/auth/auth-context';
 
 type AppProps = {

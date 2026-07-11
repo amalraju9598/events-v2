@@ -118,9 +118,72 @@ model EventType {
   updated_at  DateTime @updatedAt
 
   // Relation
-  user User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user      User?      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  templates Template[]
 
   // Unique constraint
   @@unique([identifier, user_id])
   @@map("event_types")
+}
+
+// ─────────────────────────────────────────────────────────
+//  Templates & Fields
+// ─────────────────────────────────────────────────────────
+
+enum TemplateStatus {
+  draft
+  active
+  disabled
+}
+
+enum FieldType {
+  text
+  image
+  date
+  long_text
+  location
+}
+
+model Template {
+  id                  String         @id @default(uuid()) @db.VarChar(36)
+  event_type_id       String         @db.VarChar(36)
+  name                String         @db.VarChar(255)
+  slug                String         @unique @db.VarChar(255)
+  code                String         @unique @db.VarChar(50)
+  price               Decimal        @db.Decimal(10, 2)
+  strikethrough_price Decimal?       @db.Decimal(10, 2)
+  preview_image       String?        @db.Text
+  status              TemplateStatus @default(draft)
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+
+  // Relations
+  event_type      EventType       @relation(fields: [event_type_id], references: [id], onDelete: Cascade)
+  template_fields TemplateField[]
+
+  @@map("templates")
+}
+
+model Field {
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  identifier String    @unique @db.VarChar(100)
+  type       FieldType
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  // Relations
+  template_fields TemplateField[]
+
+  @@map("fields")
+}
+
+model TemplateField {
+  template_id String @db.VarChar(36)
+  field_id    String @db.VarChar(36)
+
+  template Template @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  field    Field    @relation(fields: [field_id], references: [id], onDelete: Cascade)
+
+  @@id([template_id, field_id])
+  @@map("template_fields")
 }

@@ -17,7 +17,6 @@ import { useRouter, usePathname } from 'src/routes/hooks';
 import { _myAccount } from 'src/_mock';
 
 // ----------------------------------------------------------------------
-
 import { useAuth } from 'src/auth/auth-context';
 
 export type AccountPopoverProps = IconButtonProps & {

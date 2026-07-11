@@ -68,6 +68,51 @@ async function main() {
     });
   }
 
+  // 5. Seed Event Types
+  console.log('Seeding event types...');
+  const eventTypesData = [
+    { name: 'Birthday Party', identifier: 'birthday-party', description: 'Birthday celebrations' },
+    { name: 'Wedding Ceremony', identifier: 'wedding-ceremony', description: 'Wedding celebrations' },
+    { name: 'Corporate Event', identifier: 'corporate-event', description: 'Professional corporate events' },
+    { name: 'Concert', identifier: 'concert', description: 'Music concert events' },
+  ];
+  const seededEventTypes: any[] = [];
+  for (const et of eventTypesData) {
+    const existing = await prisma.eventType.findFirst({
+      where: { identifier: et.identifier, user_id: null },
+    });
+    if (!existing) {
+      const res = await prisma.eventType.create({
+        data: {
+          name: et.name,
+          identifier: et.identifier,
+          description: et.description,
+          user_id: null,
+        },
+      });
+      seededEventTypes.push(res);
+    } else {
+      seededEventTypes.push(existing);
+    }
+  }
+
+  // 6. Seed Fields
+  console.log('Seeding fields...');
+  const fieldsData = [
+    { identifier: 'title', type: 'text' as const },
+    { identifier: 'banner_image', type: 'image' as const },
+    { identifier: 'event_date', type: 'date' as const },
+    { identifier: 'detailed_description', type: 'long_text' as const },
+    { identifier: 'venue_location', type: 'location' as const },
+  ];
+  for (const f of fieldsData) {
+    await prisma.field.upsert({
+      where: { identifier: f.identifier },
+      update: {},
+      create: f,
+    });
+  }
+
   console.log('Seeding completed successfully!');
 }
 
