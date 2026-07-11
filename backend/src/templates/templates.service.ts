@@ -58,8 +58,12 @@ export class TemplatesService {
     });
   }
 
-  async findAll(page?: number, limit?: number, search?: string) {
+  async findAll(page?: number, limit?: number, search?: string, eventTypeId?: string) {
     const where: any = {};
+
+    if (eventTypeId) {
+      where.event_type_id = eventTypeId;
+    }
 
     if (search) {
       where.OR = [

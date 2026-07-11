@@ -22,6 +22,7 @@ export type UserProps = {
   username: string | null;
   mobile: string | null;
   user_type: string;
+  profile_pic?: string | null;
 };
 
 type UserTableRowProps = {
@@ -30,9 +31,10 @@ type UserTableRowProps = {
   onSelectRow: () => void;
   onEditRow: () => void;
   onDeleteRow: () => void;
+  onViewEvents: () => void;
 };
 
-export function UserTableRow({ row, selected, onSelectRow, onEditRow, onDeleteRow }: UserTableRowProps) {
+export function UserTableRow({ row, selected, onSelectRow, onEditRow, onDeleteRow, onViewEvents }: UserTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -58,7 +60,7 @@ export function UserTableRow({ row, selected, onSelectRow, onEditRow, onDeleteRo
               alignItems: 'center',
             }}
           >
-            <Avatar alt={row.name} src="" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+            <Avatar alt={row.name} src={row.profile_pic || ""} sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
               {row.name.charAt(0).toUpperCase()}
             </Avatar>
             {row.name}
@@ -107,6 +109,11 @@ export function UserTableRow({ row, selected, onSelectRow, onEditRow, onDeleteRo
             },
           }}
         >
+          <MenuItem onClick={() => { handleClosePopover(); onViewEvents(); }}>
+            <Iconify icon={"solar:calendar-bold" as any} />
+            View Events
+          </MenuItem>
+
           <MenuItem onClick={() => { handleClosePopover(); onEditRow(); }}>
             <Iconify icon="solar:pen-bold" />
             Edit

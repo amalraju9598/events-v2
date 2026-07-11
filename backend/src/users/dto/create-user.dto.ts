@@ -56,4 +56,9 @@ export class CreateUserDto {
   @IsEnum(UserType)
   @IsOptional()
   user_type?: UserType;
+
+  @ApiPropertyOptional({ example: 'https://images.unsplash.com/...', description: 'Profile picture URL' })
+  @IsString()
+  @IsOptional()
+  profile_pic?: string;
 }

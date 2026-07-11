@@ -20,6 +20,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { useRouter } from 'src/routes/hooks';
+
 import { api } from 'src/utils/api-client';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -39,6 +41,7 @@ import type { UserProps } from '../user-table-row';
 // ----------------------------------------------------------------------
 
 export function UserView() {
+  const router = useRouter();
   const table = useTable();
 
   const [users, setUsers] = useState<UserProps[]>([]);
@@ -57,6 +60,7 @@ export function UserView() {
     username: '',
     password: '',
     user_type: 'user',
+    profile_pic: '',
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [submittingForm, setSubmittingForm] = useState(false);
@@ -94,6 +98,7 @@ export function UserView() {
       username: '',
       password: '',
       user_type: 'user',
+      profile_pic: '',
     });
     setFormError(null);
     setDialogOpen(true);
@@ -109,6 +114,7 @@ export function UserView() {
       username: user.username || '',
       password: '', // Password is optional on update
       user_type: user.user_type,
+      profile_pic: user.profile_pic || '',
     });
     setFormError(null);
     setDialogOpen(true);
@@ -127,6 +133,7 @@ export function UserView() {
         mobile: formFields.mobile || undefined,
         username: formFields.username || undefined,
         user_type: formFields.user_type,
+        profile_pic: formFields.profile_pic || undefined,
       };
 
       if (editingUser) {
@@ -254,6 +261,7 @@ export function UserView() {
                       onSelectRow={() => table.onSelectRow(row.id)}
                       onEditRow={() => handleOpenEdit(row)}
                       onDeleteRow={() => handleDeleteRow(row.id)}
+                      onViewEvents={() => router.push(`/events?user_id=${row.id}`)}
                     />
                   ))
                 )}
@@ -318,6 +326,14 @@ export function UserView() {
               fullWidth
               value={formFields.mobile}
               onChange={(e) => setFormFields({ ...formFields, mobile: e.target.value })}
+            />
+
+            <TextField
+              label="Profile Picture URL"
+              fullWidth
+              value={formFields.profile_pic}
+              onChange={(e) => setFormFields({ ...formFields, profile_pic: e.target.value })}
+              placeholder="https://images.unsplash.com/photo-..."
             />
 
             <TextField

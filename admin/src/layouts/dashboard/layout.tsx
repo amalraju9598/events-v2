@@ -9,6 +9,8 @@ import { useTheme } from '@mui/material/styles';
 
 import { _langs, _notifications } from 'src/_mock';
 
+import { useAuth } from 'src/auth/auth-context';
+
 import { NavMobile, NavDesktop } from './nav';
 import { layoutClasses } from '../core/classes';
 import { _account } from '../nav-config-account';
@@ -47,9 +49,14 @@ export function DashboardLayout({
   slotProps,
   layoutQuery = 'lg',
 }: DashboardLayoutProps) {
+  const { user } = useAuth();
   const theme = useTheme();
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
+
+  const filteredNavData = user?.user_type === 'super_admin'
+    ? navData
+    : navData.filter((item) => item.path.startsWith('/events'));
 
   const renderHeader = () => {
     const headerSlotProps: HeaderSectionProps['slotProps'] = {
@@ -71,7 +78,7 @@ export function DashboardLayout({
             onClick={onOpen}
             sx={{ mr: 1, ml: -1, [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }}
           />
-          <NavMobile data={navData} open={open} onClose={onClose} workspaces={_workspaces} />
+          <NavMobile data={filteredNavData} open={open} onClose={onClose} workspaces={_workspaces} />
         </>
       ),
       rightArea: (
@@ -117,7 +124,7 @@ export function DashboardLayout({
        * @Sidebar
        *************************************** */
       sidebarSection={
-        <NavDesktop data={navData} layoutQuery={layoutQuery} workspaces={_workspaces} />
+        <NavDesktop data={filteredNavData} layoutQuery={layoutQuery} workspaces={_workspaces} />
       }
       /** **************************************
        * @Footer

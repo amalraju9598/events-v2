@@ -21,6 +21,8 @@ export const EventTypesPage = lazy(() => import('src/pages/event-types'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const TemplatesPage = lazy(() => import('src/pages/templates'));
 export const FieldsPage = lazy(() => import('src/pages/fields'));
+export const EventsPage = lazy(() => import('src/pages/events'));
+export const EventDetailsPage = lazy(() => import('src/pages/event-details'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -60,6 +62,8 @@ export const routesSection: RouteObject[] = [
       { path: 'event-types', element: <EventTypesPage /> },
       { path: 'templates', element: <TemplatesPage /> },
       { path: 'fields', element: <FieldsPage /> },
+      { path: 'events', element: <EventsPage /> },
+      { path: 'events/:id', element: <EventDetailsPage /> },
       { path: 'blog', element: <BlogPage /> },
     ],
   },

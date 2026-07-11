@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { EventTypesModule } from './event-types/event-types.module';
 import { TemplatesModule } from './templates/templates.module';
 import { FieldsModule } from './fields/fields.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { FieldsModule } from './fields/fields.module';
     EventTypesModule,
     TemplatesModule,
     FieldsModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
