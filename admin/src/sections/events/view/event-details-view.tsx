@@ -21,6 +21,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CircularProgress from '@mui/material/CircularProgress';
+import Container from '@mui/material/Container';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -33,6 +34,7 @@ import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { WeddingTemplate } from '../templated/wedding-template';
+import { getTemplateComponent } from '../templated';
 
 // ----------------------------------------------------------------------
 
@@ -58,6 +60,7 @@ type EventTemplateProps = {
     code: string;
     price: string;
     preview_image: string | null;
+    view_page: string | null;
     template_fields: {
       field: {
         id: string;
@@ -111,6 +114,7 @@ export function EventDetailsView() {
   const [submitLoading, setSubmitLoading] = useState(false);
 
   const [editFieldsOpen, setEditFieldsOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [fieldsState, setFieldsState] = useState<Record<string, string>>({});
 
   const fetchEventDetails = useCallback(async () => {
@@ -397,28 +401,47 @@ export function EventDetailsView() {
                       Template Code: {selectedEventTemplate.template.code}
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<Iconify icon={"solar:pen-bold" as any} />}
-                    onClick={() => handleOpenEditFields(selectedEventTemplate)}
-                  >
-                    Edit Fields
-                  </Button>
+                  <Stack direction="row" spacing={1.5}>
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      startIcon={<Iconify icon={"solar:eye-bold" as any} />}
+                      onClick={() => setPreviewOpen(true)}
+                    >
+                      Preview Live Page
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<Iconify icon={"solar:pen-bold" as any} />}
+                      onClick={() => handleOpenEditFields(selectedEventTemplate)}
+                    >
+                      Edit Fields
+                    </Button>
+                  </Stack>
                 </Box>
 
-                {selectedEventTemplate.template.code?.toLowerCase().includes('wed') ||
+                {selectedEventTemplate.template.view_page ||
+                selectedEventTemplate.template.code?.toLowerCase().includes('wed') ||
                 selectedEventTemplate.template.slug?.toLowerCase().includes('wedding') ||
                 selectedEventTemplate.template.name?.toLowerCase().includes('wedding') ? (
-                  <WeddingTemplate
-                    event={{
-                      name: eventData.name,
-                      description: eventData.description,
-                      event_date: eventData.event_date,
-                      start_date: eventData.start_date,
-                    }}
-                    fields={selectedEventTemplate.event_template_fields}
-                  />
+                  (() => {
+                    const SelectedComponent = selectedEventTemplate.template.view_page
+                      ? getTemplateComponent(selectedEventTemplate.template.view_page)
+                      : null;
+                    const ComponentToRender = SelectedComponent || WeddingTemplate;
+                    return (
+                      <ComponentToRender
+                        event={{
+                          name: eventData.name,
+                          description: eventData.description,
+                          event_date: eventData.event_date,
+                          start_date: eventData.start_date,
+                        }}
+                        fields={selectedEventTemplate.event_template_fields}
+                      />
+                    );
+                  })()
                 ) : (
                   <>
                     {selectedEventTemplate.template.preview_image && (
@@ -513,86 +536,143 @@ export function EventDetailsView() {
 
       {/* Edit Fields Values Dialog */}
       {selectedEventTemplate && (
-        <Dialog open={editFieldsOpen} onClose={() => setEditFieldsOpen(false)} maxWidth="sm" fullWidth>
+        <Dialog open={editFieldsOpen} onClose={() => setEditFieldsOpen(false)} maxWidth="lg" fullWidth>
           <DialogTitle>Edit Template Fields</DialogTitle>
           <form onSubmit={handleSaveFields}>
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
-              {selectedEventTemplate.template.template_fields.map((tf) => {
-                const f = tf.field;
-                if (f.type === 'long_text') {
-                  return (
-                    <TextField
-                      key={f.id}
-                      label={`${f.identifier} (${f.type})`}
-                      fullWidth
-                      multiline
-                      rows={3}
-                      value={fieldsState[f.id] || ''}
-                      onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
-                    />
-                  );
-                }
-                if (f.type === 'date') {
-                  return (
-                    <TextField
-                      key={f.id}
-                      label={`${f.identifier} (${f.type})`}
-                      fullWidth
-                      type="date"
-                      InputLabelProps={{ shrink: true }}
-                      value={fieldsState[f.id] || ''}
-                      onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
-                    />
-                  );
-                }
-                if (f.type === 'image') {
-                  return (
-                    <Box key={f.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="subtitle2">{f.identifier} (Image upload)</Typography>
-                      <Button
-                        variant="outlined"
-                        component="label"
-                        startIcon={<Iconify icon={"solar:upload-bold" as any} />}
-                      >
-                        Choose File
-                        <input
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setFieldsState((prev) => ({ ...prev, [f.id]: reader.result as string }));
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
+            <DialogContent sx={{ pt: 1 }}>
+              <Grid container spacing={3}>
+                {/* Form Fields (Left) */}
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Stack spacing={2.5}>
+                    {selectedEventTemplate.template.template_fields.map((tf) => {
+                      const f = tf.field;
+                      if (f.type === 'long_text') {
+                        return (
+                          <TextField
+                            key={f.id}
+                            label={`${f.identifier} (${f.type})`}
+                            fullWidth
+                            multiline
+                            rows={3}
+                            value={fieldsState[f.id] || ''}
+                            onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
+                          />
+                        );
+                      }
+                      if (f.type === 'date') {
+                        return (
+                          <TextField
+                            key={f.id}
+                            label={`${f.identifier} (${f.type})`}
+                            fullWidth
+                            type="date"
+                            InputLabelProps={{ shrink: true }}
+                            value={fieldsState[f.id] || ''}
+                            onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
+                          />
+                        );
+                      }
+                      if (f.type === 'image') {
+                        return (
+                          <Box key={f.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography variant="subtitle2">{f.identifier} (Image upload)</Typography>
+                            <Button
+                              variant="outlined"
+                              component="label"
+                              startIcon={<Iconify icon={"solar:upload-bold" as any} />}
+                            >
+                              Choose File
+                              <input
+                                type="file"
+                                accept="image/*"
+                                hidden
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    try {
+                                      const formData = new FormData();
+                                      formData.append('file', file);
+                                      const res = await api.upload('/upload', formData);
+                                      setFieldsState((prev) => ({ ...prev, [f.id]: res.url }));
+                                    } catch (err: any) {
+                                      alert(err.message || 'File upload failed');
+                                    }
+                                  }
+                                }}
+                              />
+                            </Button>
+                            {fieldsState[f.id] && (
+                              <Box
+                                component="img"
+                                src={fieldsState[f.id]}
+                                alt="Uploaded Preview"
+                                sx={{ width: 1, maxHeight: 120, objectFit: 'cover', borderRadius: 1, border: '1px solid rgba(0,0,0,0.1)' }}
+                              />
+                            )}
+                          </Box>
+                        );
+                      }
+                      // Also default text, image, location to standard inputs
+                      return (
+                        <TextField
+                          key={f.id}
+                          label={`${f.identifier} (${f.type})`}
+                          fullWidth
+                          value={fieldsState[f.id] || ''}
+                          onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
                         />
-                      </Button>
-                      {fieldsState[f.id] && (
-                        <Box
-                          component="img"
-                          src={fieldsState[f.id]}
-                          alt="Uploaded Preview"
-                          sx={{ width: 1, maxHeight: 120, objectFit: 'cover', borderRadius: 1, border: '1px solid rgba(0,0,0,0.1)' }}
-                        />
-                      )}
+                      );
+                    })}
+                  </Stack>
+                </Grid>
+
+                {/* Real-time Preview (Right) */}
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Box sx={{ borderLeft: (theme) => `1px solid ${theme.palette.divider}`, pl: { md: 3 }, height: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: '700', mb: 2 }}>
+                      Live Preview (with given values)
+                    </Typography>
+                    <Box
+                      sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                        bgcolor: 'background.neutral',
+                        p: 1.5,
+                        maxHeight: '70vh',
+                        overflowY: 'auto',
+                      }}
+                    >
+                      {(() => {
+                        const SelectedComponent = selectedEventTemplate.template.view_page
+                          ? getTemplateComponent(selectedEventTemplate.template.view_page)
+                          : null;
+                        const ComponentToRender = SelectedComponent || WeddingTemplate;
+                        const previewFields = selectedEventTemplate.template.template_fields.map((tf) => ({
+                          field_id: tf.field.id,
+                          value: fieldsState[tf.field.id] || '',
+                          field: {
+                            id: tf.field.id,
+                            identifier: tf.field.identifier,
+                            type: tf.field.type,
+                          },
+                        }));
+                        return (
+                          <ComponentToRender
+                            event={{
+                              name: eventData.name,
+                              description: eventData.description,
+                              event_date: eventData.event_date,
+                              start_date: eventData.start_date,
+                            }}
+                            fields={previewFields}
+                          />
+                        );
+                      })()}
                     </Box>
-                  );
-                }
-                // Also default text, image, location to standard inputs
-                return (
-                  <TextField
-                    key={f.id}
-                    label={`${f.identifier} (${f.type})`}
-                    fullWidth
-                    value={fieldsState[f.id] || ''}
-                    onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
-                  />
-                );
-              })}
+                  </Box>
+                </Grid>
+              </Grid>
             </DialogContent>
             <DialogActions sx={{ p: 2.5 }}>
               <Button onClick={() => setEditFieldsOpen(false)} disabled={submitLoading}>
@@ -603,6 +683,97 @@ export function EventDetailsView() {
               </Button>
             </DialogActions>
           </form>
+        </Dialog>
+      )}
+
+      {/* Fullscreen Event Page Preview Dialog */}
+      {selectedEventTemplate && (
+        <Dialog
+          fullScreen
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          sx={{
+            '& .MuiDialog-paper': {
+              bgcolor: 'background.default',
+            },
+          }}
+        >
+          {/* Header Bar */}
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+              bgcolor: 'background.paper',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                size="small"
+                onClick={() => setPreviewOpen(false)}
+                startIcon={<Iconify icon={"solar:arrow-left-bold" as any} />}
+              >
+                Back to Details
+              </Button>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: '700' }}>
+                  {eventData.name} - {selectedEventTemplate.template.name} Preview
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Previewing layout with actual event details and field values
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Main Preview Area */}
+          <Box
+            sx={{
+              p: { xs: 2, md: 5 },
+              minHeight: 'calc(100vh - 72px)',
+              bgcolor: 'background.neutral',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Container maxWidth="md">
+              <Box
+                sx={{
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  boxShadow: (theme: any) => theme.customShadows?.z24 || theme.shadows[24],
+                  bgcolor: 'background.paper',
+                }}
+              >
+                {(() => {
+                  const SelectedComponent = selectedEventTemplate.template.view_page
+                    ? getTemplateComponent(selectedEventTemplate.template.view_page)
+                    : null;
+                  const ComponentToRender = SelectedComponent || WeddingTemplate;
+                  return (
+                    <ComponentToRender
+                      event={{
+                        name: eventData.name,
+                        description: eventData.description,
+                        event_date: eventData.event_date,
+                        start_date: eventData.start_date,
+                      }}
+                      fields={selectedEventTemplate.event_template_fields}
+                    />
+                  );
+                })()}
+              </Box>
+            </Container>
+          </Box>
         </Dialog>
       )}
     </DashboardContent>

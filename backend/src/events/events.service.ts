@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -40,7 +45,12 @@ export class EventsService {
     });
   }
 
-  async findAll(page?: number, limit?: number, search?: string, userId?: string) {
+  async findAll(
+    page?: number,
+    limit?: number,
+    search?: string,
+    userId?: string,
+  ) {
     const where: any = {};
 
     if (userId) {
@@ -137,7 +147,9 @@ export class EventsService {
     const current = await this.findOne(id);
 
     if (updateEventDto.user_id && updateEventDto.user_id !== current.user_id) {
-      throw new BadRequestException('User cannot be changed after the event is created');
+      throw new BadRequestException(
+        'User cannot be changed after the event is created',
+      );
     }
 
     if (updateEventDto.slug && updateEventDto.slug !== current.slug) {
@@ -145,14 +157,19 @@ export class EventsService {
         where: { slug: updateEventDto.slug },
       });
       if (existing) {
-        throw new ConflictException(`Event with slug "${updateEventDto.slug}" already exists.`);
+        throw new ConflictException(
+          `Event with slug "${updateEventDto.slug}" already exists.`,
+        );
       }
     }
 
     const data: any = { ...updateEventDto };
-    if (updateEventDto.start_date) data.start_date = new Date(updateEventDto.start_date);
-    if (updateEventDto.end_date) data.end_date = new Date(updateEventDto.end_date);
-    if (updateEventDto.event_date) data.event_date = new Date(updateEventDto.event_date);
+    if (updateEventDto.start_date)
+      data.start_date = new Date(updateEventDto.start_date);
+    if (updateEventDto.end_date)
+      data.end_date = new Date(updateEventDto.end_date);
+    if (updateEventDto.event_date)
+      data.event_date = new Date(updateEventDto.event_date);
 
     return this.prisma.event.update({
       where: { id },
@@ -180,14 +197,21 @@ export class EventsService {
   // --- Event Template operations ---
 
   async addTemplateToEvent(eventId: string, templateId: string) {
-    const event = await this.prisma.event.findUnique({ where: { id: eventId } });
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
     if (!event) throw new NotFoundException(`Event #${eventId} not found`);
 
-    const template = await this.prisma.template.findUnique({ where: { id: templateId } });
-    if (!template) throw new NotFoundException(`Template #${templateId} not found`);
+    const template = await this.prisma.template.findUnique({
+      where: { id: templateId },
+    });
+    if (!template)
+      throw new NotFoundException(`Template #${templateId} not found`);
 
     if (template.event_type_id !== event.event_type_id) {
-      throw new BadRequestException('Template event type must match event event type');
+      throw new BadRequestException(
+        'Template event type must match event event type',
+      );
     }
 
     const existing = await this.prisma.eventTemplate.findFirst({
@@ -215,7 +239,9 @@ export class EventsService {
       where: { id: eventTemplateId },
     });
     if (!eventTemplate) {
-      throw new NotFoundException(`Event Template association #${eventTemplateId} not found`);
+      throw new NotFoundException(
+        `Event Template association #${eventTemplateId} not found`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -241,7 +267,9 @@ export class EventsService {
       where: { id: eventTemplateId },
     });
     if (!eventTemplate) {
-      throw new NotFoundException(`Event Template association #${eventTemplateId} not found`);
+      throw new NotFoundException(
+        `Event Template association #${eventTemplateId} not found`,
+      );
     }
 
     return this.prisma.eventTemplate.update({
@@ -253,12 +281,17 @@ export class EventsService {
     });
   }
 
-  async saveTemplateFieldValues(eventTemplateId: string, fields: { field_id: string; value: string }[]) {
+  async saveTemplateFieldValues(
+    eventTemplateId: string,
+    fields: { field_id: string; value: string }[],
+  ) {
     const eventTemplate = await this.prisma.eventTemplate.findUnique({
       where: { id: eventTemplateId },
     });
     if (!eventTemplate) {
-      throw new NotFoundException(`Event Template association #${eventTemplateId} not found`);
+      throw new NotFoundException(
+        `Event Template association #${eventTemplateId} not found`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {

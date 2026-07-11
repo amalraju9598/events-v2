@@ -20,6 +20,7 @@ export const UserPage = lazy(() => import('src/pages/user'));
 export const EventTypesPage = lazy(() => import('src/pages/event-types'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 export const TemplatesPage = lazy(() => import('src/pages/templates'));
+export const TemplatesPreviewPage = lazy(() => import('src/pages/templates-preview'));
 export const FieldsPage = lazy(() => import('src/pages/fields'));
 export const EventsPage = lazy(() => import('src/pages/events'));
 export const EventDetailsPage = lazy(() => import('src/pages/event-details'));
@@ -61,6 +62,7 @@ export const routesSection: RouteObject[] = [
       { path: 'user', element: <UserPage /> },
       { path: 'event-types', element: <EventTypesPage /> },
       { path: 'templates', element: <TemplatesPage /> },
+      { path: 'templates-preview', element: <TemplatesPreviewPage /> },
       { path: 'fields', element: <FieldsPage /> },
       { path: 'events', element: <EventsPage /> },
       { path: 'events/:id', element: <EventDetailsPage /> },

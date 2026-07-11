@@ -1,13 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsDateString, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsDateString,
+  Matches,
+} from 'class-validator';
 
 export class CreateEventDto {
-  @ApiProperty({ example: 'My Birthday Bash', description: 'Name of the event' })
+  @ApiProperty({
+    example: 'My Birthday Bash',
+    description: 'Name of the event',
+  })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ example: 'Celebrating my 25th birthday', description: 'Description' })
+  @ApiPropertyOptional({
+    example: 'Celebrating my 25th birthday',
+    description: 'Description',
+  })
   @IsString()
   @IsOptional()
   description?: string;
@@ -32,7 +44,10 @@ export class CreateEventDto {
   @IsNotEmpty()
   event_date: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/event', description: 'Event URL' })
+  @ApiPropertyOptional({
+    example: 'https://example.com/event',
+    description: 'Event URL',
+  })
   @IsString()
   @IsOptional()
   url?: string;
@@ -42,7 +57,10 @@ export class CreateEventDto {
   @IsNotEmpty()
   event_type_id: string;
 
-  @ApiProperty({ example: 'my_birthday_bash_2026', description: 'Unique slug (alphabets, numbers, underscore only)' })
+  @ApiProperty({
+    example: 'my_birthday_bash_2026',
+    description: 'Unique slug (alphabets, numbers, underscore only)',
+  })
   @IsString()
   @IsNotEmpty()
   @Matches(/^[a-zA-Z0-9_]+$/, {

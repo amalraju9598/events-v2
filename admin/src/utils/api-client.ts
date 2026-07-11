@@ -40,4 +40,31 @@ export const api = {
   patch: (path: string, body: any) => request('PATCH', path, body),
   put: (path: string, body: any) => request('PUT', path, body),
   delete: (path: string) => request('DELETE', path),
+  upload: (path: string, formData: FormData) => upload(path, formData),
 };
+
+async function upload(path: string, formData: FormData) {
+  const token = localStorage.getItem('access_token');
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${CONFIG.apiUrl}${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
+      window.location.href = '/sign-in';
+    }
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Upload failed');
+  }
+
+  return response.json();
+}

@@ -156,6 +156,7 @@ model Template {
   price               Decimal        @db.Decimal(10, 2)
   strikethrough_price Decimal?       @db.Decimal(10, 2)
   preview_image       String?        @db.Text
+  view_page           String?        @db.VarChar(255)
   status              TemplateStatus @default(draft)
   created_at          DateTime       @default(now())
   updated_at          DateTime       @updatedAt

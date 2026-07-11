@@ -51,6 +51,14 @@ export class CreateTemplateDto {
   @IsOptional()
   preview_image?: string;
 
+  @ApiPropertyOptional({
+    example: 'wedding-template',
+    description: 'Identifier / key for the template view page component',
+  })
+  @IsString()
+  @IsOptional()
+  view_page?: string;
+
   @ApiProperty({
     enum: TemplateStatus,
     default: TemplateStatus.draft,

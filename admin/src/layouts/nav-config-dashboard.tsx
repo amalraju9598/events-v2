@@ -38,6 +38,11 @@ export const navData = [
     icon: icon('ic-cart'),
   },
   {
+    title: 'Templates Preview',
+    path: '/templates-preview',
+    icon: icon('ic-lock'),
+  },
+  {
     title: 'Fields',
     path: '/fields',
     icon: icon('ic-blog'),

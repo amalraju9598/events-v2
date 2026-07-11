@@ -30,7 +30,9 @@ export class EventsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all events (optional user_id and search filters)' })
+  @ApiOperation({
+    summary: 'Get all events (optional user_id and search filters)',
+  })
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -72,7 +74,9 @@ export class EventsController {
   }
 
   @Patch('templates/:eventTemplateId/enable')
-  @ApiOperation({ summary: 'Enable an event template and disable all others for the event' })
+  @ApiOperation({
+    summary: 'Enable an event template and disable all others for the event',
+  })
   enableTemplate(@Param('eventTemplateId') eventTemplateId: string) {
     return this.eventsService.enableEventTemplate(eventTemplateId);
   }
@@ -89,6 +93,9 @@ export class EventsController {
     @Param('eventTemplateId') eventTemplateId: string,
     @Body('fields') fields: { field_id: string; value: string }[],
   ) {
-    return this.eventsService.saveTemplateFieldValues(eventTemplateId, fields || []);
+    return this.eventsService.saveTemplateFieldValues(
+      eventTemplateId,
+      fields || [],
+    );
   }
 }

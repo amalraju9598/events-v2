@@ -46,7 +46,12 @@ export class TemplatesController {
   ) {
     const pageNum = page ? parseInt(page, 10) : undefined;
     const limitNum = limit ? parseInt(limit, 10) : undefined;
-    return this.templatesService.findAll(pageNum, limitNum, search, eventTypeId);
+    return this.templatesService.findAll(
+      pageNum,
+      limitNum,
+      search,
+      eventTypeId,
+    );
   }
 
   @Get(':id')

@@ -30,6 +30,7 @@ import { TemplateCard } from '../product-card';
 import { UserTableToolbar } from '../../user/user-table-toolbar';
 
 import type { TemplateProps } from '../product-table-row';
+import { TEMPLATE_REGISTRY } from 'src/sections/events/templated';
 
 type SimpleEventType = {
   id: string;
@@ -71,6 +72,7 @@ export function ProductsView() {
     price: '',
     strikethrough_price: '',
     preview_image: '',
+    view_page: '',
     status: 'draft' as 'draft' | 'active' | 'disabled',
     field_ids: [] as string[],
   });
@@ -175,6 +177,7 @@ export function ProductsView() {
       price: '',
       strikethrough_price: '',
       preview_image: '',
+      view_page: '',
       status: 'draft',
       field_ids: [],
     });
@@ -193,6 +196,7 @@ export function ProductsView() {
       price: String(template.price),
       strikethrough_price: template.strikethrough_price ? String(template.strikethrough_price) : '',
       preview_image: template.preview_image || '',
+      view_page: template.view_page || '',
       status: template.status,
       field_ids: template.template_fields?.map((tf) => tf.field.id) || [],
     });
@@ -228,6 +232,7 @@ export function ProductsView() {
         price: parsedPrice,
         strikethrough_price: parsedStrikethrough,
         preview_image: formFields.preview_image || null,
+        view_page: formFields.view_page || null,
         status: formFields.status,
         field_ids: formFields.field_ids,
       };
@@ -471,6 +476,27 @@ export function ProductsView() {
                   value={formFields.preview_image}
                   onChange={(e) => setFormFields({ ...formFields, preview_image: e.target.value })}
                 />
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <InputLabel id="view-page-label">View Page Component</InputLabel>
+                  <Select
+                    labelId="view-page-label"
+                    label="View Page Component"
+                    value={formFields.view_page}
+                    onChange={(e) => setFormFields({ ...formFields, view_page: e.target.value })}
+                  >
+                    <MenuItem value="">
+                      <em>None (Default Preview)</em>
+                    </MenuItem>
+                    {TEMPLATE_REGISTRY.map((t) => (
+                      <MenuItem key={t.key} value={t.key}>
+                        {t.name} ({t.key}.tsx)
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
 
               <Grid size={{ xs: 12 }}>

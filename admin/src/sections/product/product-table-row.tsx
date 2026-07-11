@@ -24,6 +24,7 @@ export type TemplateProps = {
   price: number;
   strikethrough_price: number | null;
   preview_image: string | null;
+  view_page?: string | null;
   status: 'draft' | 'active' | 'disabled';
   event_type_id: string;
   event_type: {
