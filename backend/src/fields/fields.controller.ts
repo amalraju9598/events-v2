@@ -14,15 +14,17 @@ import { CreateFieldDto } from './dto/create-field.dto';
 import { UpdateFieldDto } from './dto/update-field.dto';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SuperAdminGuard } from '../auth/guards/super-admin.guard';
 
 @ApiTags('fields')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 @Controller('fields')
 export class FieldsController {
   constructor(private readonly fieldsService: FieldsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Create a new template field' })
   create(@Body() createFieldDto: CreateFieldDto) {
     return this.fieldsService.create(createFieldDto);
@@ -47,16 +49,14 @@ export class FieldsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Update a field' })
   update(@Param('id') id: string, @Body() updateFieldDto: UpdateFieldDto) {
     return this.fieldsService.update(id, updateFieldDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Delete a field' })
   remove(@Param('id') id: string) {
     return this.fieldsService.remove(id);

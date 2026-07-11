@@ -7,18 +7,24 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { EventTypesService } from './event-types.service';
 import { CreateEventTypeDto } from './dto/create-event-type.dto';
 import { UpdateEventTypeDto } from './dto/update-event-type.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SuperAdminGuard } from '../auth/guards/super-admin.guard';
 
 @ApiTags('Event Types')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 @Controller('event-types')
 export class EventTypesController {
   constructor(private readonly eventTypesService: EventTypesService) {}
 
   @Post()
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Create a new event type' })
   @ApiResponse({ status: 201, description: 'Event type successfully created.' })
   @ApiResponse({
@@ -53,6 +59,7 @@ export class EventTypesController {
   }
 
   @Patch(':id')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Update an event type' })
   @ApiResponse({ status: 200, description: 'Event type successfully updated.' })
   @ApiResponse({ status: 404, description: 'Event type not found.' })
@@ -64,6 +71,7 @@ export class EventTypesController {
   }
 
   @Delete(':id')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Delete an event type' })
   @ApiResponse({ status: 200, description: 'Event type successfully deleted.' })
   @ApiResponse({ status: 404, description: 'Event type not found.' })

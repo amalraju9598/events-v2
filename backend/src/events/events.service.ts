@@ -136,6 +136,10 @@ export class EventsService {
   async update(id: string, updateEventDto: UpdateEventDto) {
     const current = await this.findOne(id);
 
+    if (updateEventDto.user_id && updateEventDto.user_id !== current.user_id) {
+      throw new BadRequestException('User cannot be changed after the event is created');
+    }
+
     if (updateEventDto.slug && updateEventDto.slug !== current.slug) {
       const existing = await this.prisma.event.findUnique({
         where: { slug: updateEventDto.slug },

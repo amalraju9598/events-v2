@@ -30,8 +30,16 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/sign-in" replace />;
   }
 
-  if (user.user_type !== 'super_admin' && !location.pathname.startsWith('/events')) {
-    return <Navigate to="/events" replace />;
+  if (user.user_type !== 'super_admin') {
+    if (location.pathname === '/events') {
+      const searchParams = new URLSearchParams(location.search);
+      if (searchParams.get('user_id') !== user.id) {
+        searchParams.set('user_id', user.id);
+        return <Navigate to={`/events?${searchParams.toString()}`} replace />;
+      }
+    } else if (!location.pathname.startsWith('/events')) {
+      return <Navigate to={`/events?user_id=${user.id}`} replace />;
+    }
   }
 
   return <>{children}</>;

@@ -17,13 +17,13 @@ import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('events')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new event' })
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
@@ -49,16 +49,12 @@ export class EventsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update an event' })
   update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
     return this.eventsService.update(id, updateEventDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete an event' })
   remove(@Param('id') id: string) {
     return this.eventsService.remove(id);
@@ -67,8 +63,6 @@ export class EventsController {
   // --- Event Template Routes ---
 
   @Post(':id/templates')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Add a template association to an event' })
   addTemplate(
     @Param('id') id: string,
@@ -78,24 +72,18 @@ export class EventsController {
   }
 
   @Patch('templates/:eventTemplateId/enable')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Enable an event template and disable all others for the event' })
   enableTemplate(@Param('eventTemplateId') eventTemplateId: string) {
     return this.eventsService.enableEventTemplate(eventTemplateId);
   }
 
   @Patch('templates/:eventTemplateId/disable')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Disable an event template' })
   disableTemplate(@Param('eventTemplateId') eventTemplateId: string) {
     return this.eventsService.disableEventTemplate(eventTemplateId);
   }
 
   @Put('templates/:eventTemplateId/fields')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Save template field values for an event template' })
   saveFields(
     @Param('eventTemplateId') eventTemplateId: string,

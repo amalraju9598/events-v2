@@ -120,7 +120,7 @@ export function EventsView() {
     setFormFields({
       name: '',
       description: '',
-      user_id: currentUser?.user_type === 'super_admin' ? '' : currentUser?.id || '',
+      user_id: userIdFilter || (currentUser?.user_type === 'super_admin' ? '' : currentUser?.id || ''),
       start_date: '',
       end_date: '',
       event_date: '',
@@ -237,16 +237,30 @@ export function EventsView() {
       ) : (
         <>
           <Grid container spacing={3}>
-            {events.map((evt) => (
-              <Grid key={evt.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <EventCard
-                  event={evt}
-                  onEdit={() => handleOpenEdit(evt)}
-                  onDelete={() => handleDelete(evt.id)}
-                  onView={() => router.push(`/events/${evt.id}`)}
-                />
-              </Grid>
-            ))}
+            {events.map((evt, index) => {
+              const latestPostLarge = index === 0;
+              const latestPost = index === 1 || index === 2;
+
+              return (
+                <Grid
+                  key={evt.id}
+                  size={{
+                    xs: 12,
+                    sm: latestPostLarge ? 12 : 6,
+                    md: latestPostLarge ? 6 : 3,
+                  }}
+                >
+                  <EventCard
+                    event={evt}
+                    latestPost={latestPost}
+                    latestPostLarge={latestPostLarge}
+                    onEdit={() => handleOpenEdit(evt)}
+                    onDelete={() => handleDelete(evt.id)}
+                    onView={() => router.push(`/events/${evt.id}`)}
+                  />
+                </Grid>
+              );
+            })}
             {events.length === 0 && (
               <Grid size={{ xs: 12 }}>
                 <Card sx={{ p: 4, textAlign: 'center' }}>
@@ -316,12 +330,13 @@ export function EventsView() {
             />
 
             {currentUser?.user_type === 'super_admin' ? (
-              <FormControl fullWidth required>
+              <FormControl fullWidth required disabled={!!editingEvent}>
                 <InputLabel id="event-user-label">Assigned User</InputLabel>
                 <Select
                   labelId="event-user-label"
                   label="Assigned User"
                   value={formFields.user_id}
+                  disabled={!!editingEvent}
                   onChange={(e) => setFormFields({ ...formFields, user_id: e.target.value })}
                 >
                   {users.map((u) => (

@@ -77,6 +77,52 @@ export function ProductsView() {
   const [formError, setFormError] = useState<string | null>(null);
   const [submittingForm, setSubmittingForm] = useState(false);
 
+  // Create Field Dialog states
+  const [createFieldOpen, setCreateFieldOpen] = useState(false);
+  const [newFieldIdentifier, setNewFieldIdentifier] = useState('');
+  const [newFieldType, setNewFieldType] = useState('text');
+  const [createFieldLoading, setCreateFieldLoading] = useState(false);
+  const [createFieldError, setCreateFieldError] = useState<string | null>(null);
+
+  const handleOpenCreateFieldDialog = () => {
+    setNewFieldIdentifier('');
+    setNewFieldType('text');
+    setCreateFieldError(null);
+    setCreateFieldOpen(true);
+  };
+
+  const handleCreateField = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateFieldError(null);
+    setCreateFieldLoading(true);
+
+    try {
+      const payload = {
+        identifier: newFieldIdentifier.trim(),
+        type: newFieldType,
+        template_id: editingTemplate?.id || undefined,
+      };
+
+      const newField = await api.post('/fields', payload);
+
+      // Refresh fields list
+      const fieldsRes = await api.get('/templates/fields');
+      setFieldsList(fieldsRes || []);
+
+      // Auto-select the newly created field
+      setFormFields((prev) => ({
+        ...prev,
+        field_ids: [...prev.field_ids, newField.id],
+      }));
+
+      setCreateFieldOpen(false);
+    } catch (err: any) {
+      setCreateFieldError(err.message || 'Failed to create field');
+    } finally {
+      setCreateFieldLoading(false);
+    }
+  };
+
   // Fetch templates list
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
@@ -428,8 +474,19 @@ export function ProductsView() {
               </Grid>
 
               <Grid size={{ xs: 12 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle2" color="text.secondary">Template Fields</Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Iconify icon="mingcute:add-line" />}
+                    onClick={handleOpenCreateFieldDialog}
+                  >
+                    Create Field
+                  </Button>
+                </Box>
                 <FormControl fullWidth>
-                  <InputLabel id="fields-label">Template Fields (Syncs automatically)</InputLabel>
+                  <InputLabel id="fields-label">Select Fields (Syncs automatically)</InputLabel>
                   <Select
                     labelId="fields-label"
                     label="Template Fields (Syncs automatically)"
@@ -464,6 +521,50 @@ export function ProductsView() {
             </Button>
             <Button type="submit" variant="contained" color="inherit" disabled={submittingForm}>
               {submittingForm ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Create Field Dialog */}
+      <Dialog open={createFieldOpen} onClose={() => setCreateFieldOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Create Field for Template</DialogTitle>
+        <form onSubmit={handleCreateField}>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+            {createFieldError && <Alert severity="error">{createFieldError}</Alert>}
+
+            <TextField
+              label="Field Identifier"
+              required
+              fullWidth
+              value={newFieldIdentifier}
+              onChange={(e) => setNewFieldIdentifier(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+              placeholder="e.g. spouse_name"
+              helperText="Only letters, numbers and underscores are allowed."
+            />
+
+            <FormControl fullWidth required>
+              <InputLabel id="create-field-type-label">Field Type</InputLabel>
+              <Select
+                labelId="create-field-type-label"
+                label="Field Type"
+                value={newFieldType}
+                onChange={(e) => setNewFieldType(e.target.value)}
+              >
+                <MenuItem value="text">Text</MenuItem>
+                <MenuItem value="image">Image / File Upload</MenuItem>
+                <MenuItem value="date">Date</MenuItem>
+                <MenuItem value="long_text">Large Text</MenuItem>
+                <MenuItem value="location">Location</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button onClick={() => setCreateFieldOpen(false)} disabled={createFieldLoading}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" color="inherit" disabled={createFieldLoading || !newFieldIdentifier}>
+              {createFieldLoading ? 'Creating...' : 'Create'}
             </Button>
           </DialogActions>
         </form>

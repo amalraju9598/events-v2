@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsEnum } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
 import { FieldType } from '../../../generated/prisma';
 
 export class CreateFieldDto {
@@ -19,4 +19,12 @@ export class CreateFieldDto {
   @IsEnum(FieldType)
   @IsNotEmpty()
   type: FieldType;
+
+  @ApiPropertyOptional({
+    example: 'template-uuid',
+    description: 'Optional Template ID that this field belongs to',
+  })
+  @IsString()
+  @IsOptional()
+  template_id?: string;
 }

@@ -32,6 +32,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { WeddingTemplate } from '../templated/wedding-template';
+
 // ----------------------------------------------------------------------
 
 type EventTemplateField = {
@@ -405,46 +407,62 @@ export function EventDetailsView() {
                   </Button>
                 </Box>
 
-                {selectedEventTemplate.template.preview_image && (
-                  <Box
-                    component="img"
-                    src={selectedEventTemplate.template.preview_image}
-                    alt="Preview"
-                    sx={{ width: 1, maxHeight: 240, objectFit: 'cover', borderRadius: 1.5, mb: 3 }}
+                {selectedEventTemplate.template.code?.toLowerCase().includes('wed') ||
+                selectedEventTemplate.template.slug?.toLowerCase().includes('wedding') ||
+                selectedEventTemplate.template.name?.toLowerCase().includes('wedding') ? (
+                  <WeddingTemplate
+                    event={{
+                      name: eventData.name,
+                      description: eventData.description,
+                      event_date: eventData.event_date,
+                      start_date: eventData.start_date,
+                    }}
+                    fields={selectedEventTemplate.event_template_fields}
                   />
-                )}
+                ) : (
+                  <>
+                    {selectedEventTemplate.template.preview_image && (
+                      <Box
+                        component="img"
+                        src={selectedEventTemplate.template.preview_image}
+                        alt="Preview"
+                        sx={{ width: 1, maxHeight: 240, objectFit: 'cover', borderRadius: 1.5, mb: 3 }}
+                      />
+                    )}
 
-                <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-                  Saved Fields & Values
-                </Typography>
-
-                <Stack spacing={2} divider={<Divider />}>
-                  {selectedEventTemplate.template.template_fields.map((tf) => {
-                    const matchedVal = selectedEventTemplate.event_template_fields.find(
-                      (val) => val.field_id === tf.field.id
-                    );
-                    return (
-                      <Box key={tf.field.id} sx={{ py: 1 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Stack>
-                            <Typography variant="subtitle2">{tf.field.identifier}</Typography>
-                            <Label variant="soft" color="info" sx={{ alignSelf: 'flex-start', mt: 0.5 }}>
-                              Type: {tf.field.type}
-                            </Label>
-                          </Stack>
-                          <Typography variant="body2" sx={{ fontWeight: 'medium', maxWidth: '60%', textAlign: 'right' }}>
-                            {matchedVal ? matchedVal.value : <em style={{ color: '#aaa' }}>Empty</em>}
-                          </Typography>
-                        </Stack>
-                      </Box>
-                    );
-                  })}
-                  {selectedEventTemplate.template.template_fields.length === 0 && (
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                      No fields are mapped to this template.
+                    <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                      Saved Fields & Values
                     </Typography>
-                  )}
-                </Stack>
+
+                    <Stack spacing={2} divider={<Divider />}>
+                      {selectedEventTemplate.template.template_fields.map((tf) => {
+                        const matchedVal = selectedEventTemplate.event_template_fields.find(
+                          (val) => val.field_id === tf.field.id
+                        );
+                        return (
+                          <Box key={tf.field.id} sx={{ py: 1 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                              <Stack>
+                                <Typography variant="subtitle2">{tf.field.identifier}</Typography>
+                                <Label variant="soft" color="info" sx={{ alignSelf: 'flex-start', mt: 0.5 }}>
+                                  Type: {tf.field.type}
+                                </Label>
+                              </Stack>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', maxWidth: '60%', textAlign: 'right' }}>
+                                {matchedVal ? matchedVal.value : <em style={{ color: '#aaa' }}>Empty</em>}
+                              </Typography>
+                            </Stack>
+                          </Box>
+                        );
+                      })}
+                      {selectedEventTemplate.template.template_fields.length === 0 && (
+                        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                          No fields are mapped to this template.
+                        </Typography>
+                      )}
+                    </Stack>
+                  </>
+                )}
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 1, py: 8 }}>
@@ -527,13 +545,49 @@ export function EventDetailsView() {
                     />
                   );
                 }
+                if (f.type === 'image') {
+                  return (
+                    <Box key={f.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Typography variant="subtitle2">{f.identifier} (Image upload)</Typography>
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        startIcon={<Iconify icon={"solar:upload-bold" as any} />}
+                      >
+                        Choose File
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setFieldsState((prev) => ({ ...prev, [f.id]: reader.result as string }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </Button>
+                      {fieldsState[f.id] && (
+                        <Box
+                          component="img"
+                          src={fieldsState[f.id]}
+                          alt="Uploaded Preview"
+                          sx={{ width: 1, maxHeight: 120, objectFit: 'cover', borderRadius: 1, border: '1px solid rgba(0,0,0,0.1)' }}
+                        />
+                      )}
+                    </Box>
+                  );
+                }
                 // Also default text, image, location to standard inputs
                 return (
                   <TextField
                     key={f.id}
                     label={`${f.identifier} (${f.type})`}
                     fullWidth
-                    placeholder={f.type === 'image' ? 'Paste image URL' : ''}
                     value={fieldsState[f.id] || ''}
                     onChange={(e) => setFieldsState({ ...fieldsState, [f.id]: e.target.value })}
                   />

@@ -1,3 +1,5 @@
+import { varAlpha } from 'minimal-shared/utils';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Link from '@mui/material/Link';
@@ -38,143 +40,241 @@ export type EventProps = {
 
 type Props = {
   event: EventProps;
+  latestPost?: boolean;
+  latestPostLarge?: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onView: () => void;
 };
 
-export function EventCard({ event, onEdit, onDelete, onView }: Props) {
+export function EventCard({ event, latestPost = false, latestPostLarge = false, onEdit, onDelete, onView }: Props) {
   // Generates a consistent, visually pleasing cover photo using the event's slug
-  const coverUrl = `https://images.unsplash.com/photo-1511578314322-379afb476865?w=500&auto=format&fit=crop&q=60`;
+  const coverUrl = `https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=80`;
+
+  const renderAvatar = (
+    <Avatar
+      alt={event.user.name}
+      src={event.user.profile_pic || ''}
+      sx={{
+        left: 24,
+        zIndex: 9,
+        bottom: -24,
+        position: 'absolute',
+        width: 40,
+        height: 40,
+        bgcolor: 'primary.main',
+        color: 'primary.contrastText',
+        ...((latestPostLarge || latestPost) && {
+          top: 24,
+        }),
+      }}
+    >
+      {event.user.name.charAt(0).toUpperCase()}
+    </Avatar>
+  );
+
+  const renderTitle = (
+    <Link
+      color="inherit"
+      variant="subtitle2"
+      underline="hover"
+      onClick={onView}
+      sx={{
+        height: 44,
+        overflow: 'hidden',
+        WebkitLineClamp: 2,
+        display: '-webkit-box',
+        WebkitBoxOrient: 'vertical',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        ...(latestPostLarge && { typography: 'h5', height: 60 }),
+        ...((latestPostLarge || latestPost) && {
+          color: 'common.white',
+        }),
+      }}
+    >
+      {event.name}
+    </Link>
+  );
+
+  const renderCover = (
+    <Box
+      component="img"
+      alt={event.name}
+      src={coverUrl}
+      sx={{
+        top: 0,
+        width: 1,
+        height: 1,
+        objectFit: 'cover',
+        position: 'absolute',
+      }}
+    />
+  );
+
+  const renderDate = (
+    <Typography
+      variant="caption"
+      component="div"
+      sx={{
+        mb: 1,
+        color: 'text.disabled',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+        ...((latestPostLarge || latestPost) && {
+          opacity: 0.48,
+          color: 'common.white',
+        }),
+      }}
+    >
+      <Iconify icon={"solar:calendar-bold" as any} width={14} />
+      {fDate(event.event_date)}
+    </Typography>
+  );
+
+  const renderActions = (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        zIndex: 10,
+        display: 'flex',
+        gap: 0.5,
+        bgcolor: (theme) => varAlpha(theme.palette.background.paperChannel, 0.8),
+        backdropFilter: 'blur(4px)',
+        borderRadius: 1,
+        p: 0.5,
+        boxShadow: (theme) => theme.customShadows?.z8 || 1,
+      }}
+    >
+      <IconButton size="small" onClick={onEdit}>
+        <Iconify icon="solar:pen-bold" width={16} />
+      </IconButton>
+      <IconButton size="small" color="error" onClick={onDelete}>
+        <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+      </IconButton>
+    </Box>
+  );
 
   return (
-    <Card sx={{ position: 'relative', '&:hover .event-actions': { opacity: 1 } }}>
+    <Card
+      sx={{
+        position: 'relative',
+        '&:hover .event-view-btn': { opacity: 1 },
+      }}
+    >
+      {renderActions}
+
       <Box
-        sx={{
+        sx={(theme) => ({
           position: 'relative',
           pt: 'calc(100% * 3 / 4)',
-        }}
+          ...((latestPostLarge || latestPost) && {
+            pt: 'calc(100% * 4 / 3)',
+            '&:after': {
+              top: 0,
+              content: "''",
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              bgcolor: varAlpha(theme.palette.grey['900Channel'], 0.72),
+            },
+          }),
+          ...(latestPostLarge && {
+            pt: {
+              xs: 'calc(100% * 4 / 3)',
+              sm: 'calc(100% * 3 / 4.66)',
+            },
+          }),
+        })}
       >
-        <Box
-          component="img"
-          src="/assets/icons/shape-avatar.svg"
-          sx={{
-            left: 0,
-            width: 88,
-            zIndex: 9,
-            height: 36,
-            bottom: -16,
-            position: 'absolute',
-            color: 'background.paper',
-          }}
-        />
-
-        <Avatar
-          alt={event.user.name}
-          src={event.user.profile_pic || ''}
-          sx={{
-            left: 24,
-            zIndex: 9,
-            bottom: -24,
-            position: 'absolute',
-            width: 40,
-            height: 40,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-          }}
-        >
-          {event.user.name.charAt(0).toUpperCase()}
-        </Avatar>
-
-        <Box
-          component="img"
-          alt={event.name}
-          src={coverUrl}
-          sx={{
-            top: 0,
-            width: 1,
-            height: 1,
-            objectFit: 'cover',
-            position: 'absolute',
-          }}
-        />
+        {renderAvatar}
+        {renderCover}
       </Box>
 
-      <Box sx={{ p: (theme) => theme.spacing(6, 3, 3, 3) }}>
-        <Typography
-          variant="caption"
-          component="div"
-          sx={{ mb: 1, color: 'text.disabled', display: 'flex', alignItems: 'center', gap: 0.5 }}
-        >
-          <Iconify icon={"solar:calendar-bold" as any} width={14} />
-          {fDate(event.event_date)}
-        </Typography>
+      <Box
+        sx={(theme) => ({
+          p: theme.spacing(6, 3, 3, 3),
+          ...((latestPostLarge || latestPost) && {
+            width: 1,
+            bottom: 0,
+            position: 'absolute',
+            zIndex: 9,
+          }),
+        })}
+      >
+        {renderDate}
+        {renderTitle}
 
-        <Link
-          color="inherit"
-          variant="subtitle2"
-          underline="hover"
-          onClick={onView}
-          sx={{
-            height: 44,
-            overflow: 'hidden',
-            WebkitLineClamp: 2,
-            display: '-webkit-box',
-            WebkitBoxOrient: 'vertical',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
-        >
-          {event.name}
-        </Link>
+        {!(latestPostLarge || latestPost) && (
+          <>
+            <Typography variant="body2" color="text.secondary" noWrap sx={{ mt: 1, mb: 2 }}>
+              {event.description || 'No description provided.'}
+            </Typography>
 
-        <Typography variant="body2" color="text.secondary" noWrap sx={{ mt: 1 }}>
-          {event.description || 'No description provided.'}
-        </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  bgcolor: 'action.hover',
+                  color: 'text.secondary',
+                  fontWeight: 'medium',
+                }}
+              >
+                {event.event_type.name}
+              </Typography>
+            </Box>
 
-        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography
-            variant="caption"
-            sx={{
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              bgcolor: 'action.hover',
-              color: 'text.secondary',
-              fontWeight: 'medium',
-            }}
-          >
-            {event.event_type.name}
-          </Typography>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="inherit"
+              onClick={onView}
+              sx={{ mt: 2 }}
+              startIcon={<Iconify icon="solar:eye-bold" />}
+            >
+              View Details
+            </Button>
+          </>
+        )}
 
-          <Box
-            className="event-actions"
-            sx={{
-              display: 'flex',
-              gap: 0.5,
-              opacity: 0.7,
-              transition: 'opacity 0.2s',
-            }}
-          >
-            <IconButton size="small" onClick={onEdit}>
-              <Iconify icon={"solar:pen-bold" as any} width={16} />
-            </IconButton>
-            <IconButton size="small" color="error" onClick={onDelete}>
-              <Iconify icon={"solar:trash-bin-trash-bold" as any} width={16} />
-            </IconButton>
+        {(latestPostLarge || latestPost) && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.15)',
+                color: 'common.white',
+                fontWeight: 'medium',
+              }}
+            >
+              {event.event_type.name}
+            </Typography>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              onClick={onView}
+              className="event-view-btn"
+              sx={{
+                opacity: 0.8,
+                transition: 'opacity 0.2s',
+                '&:hover': { opacity: 1 },
+              }}
+              startIcon={<Iconify icon="solar:eye-bold" />}
+            >
+              Details
+            </Button>
           </Box>
-        </Box>
-
-        <Button
-          fullWidth
-          variant="outlined"
-          color="inherit"
-          onClick={onView}
-          sx={{ mt: 2 }}
-          startIcon={<Iconify icon={"solar:eye-bold" as any} />}
-        >
-          View Details
-        </Button>
+        )}
       </Box>
     </Card>
   );

@@ -14,8 +14,11 @@ import { CreateTemplateDto } from './dto/create-template.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SuperAdminGuard } from '../auth/guards/super-admin.guard';
 
 @ApiTags('templates')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 @Controller('templates')
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
@@ -27,8 +30,7 @@ export class TemplatesController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Create a new template' })
   create(@Body() createTemplateDto: CreateTemplateDto) {
     return this.templatesService.create(createTemplateDto);
@@ -54,8 +56,7 @@ export class TemplatesController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Update a template' })
   update(
     @Param('id') id: string,
@@ -65,8 +66,7 @@ export class TemplatesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
+  @UseGuards(SuperAdminGuard)
   @ApiOperation({ summary: 'Delete a template' })
   remove(@Param('id') id: string) {
     return this.templatesService.remove(id);

@@ -12,7 +12,7 @@ export class FieldsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createFieldDto: CreateFieldDto) {
-    const { identifier } = createFieldDto;
+    const { identifier, template_id, ...rest } = createFieldDto;
 
     // Check if unique identifier is violated
     const existing = await this.prisma.field.findUnique({
@@ -24,8 +24,25 @@ export class FieldsService {
       );
     }
 
-    return this.prisma.field.create({
-      data: createFieldDto,
+    return this.prisma.$transaction(async (tx) => {
+      const field = await tx.field.create({
+        data: {
+          identifier,
+          template_id,
+          ...rest,
+        },
+      });
+
+      if (template_id) {
+        await tx.templateField.create({
+          data: {
+            template_id,
+            field_id: field.id,
+          },
+        });
+      }
+
+      return field;
     });
   }
 
