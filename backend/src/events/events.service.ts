@@ -143,6 +143,48 @@ export class EventsService {
     return event;
   }
 
+  async findOneBySlug(slug: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { slug },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            profile_pic: true,
+          },
+        },
+        event_type: true,
+        event_templates: {
+          where: { is_enabled: true },
+          include: {
+            template: {
+              include: {
+                template_fields: {
+                  include: {
+                    field: true,
+                  },
+                },
+              },
+            },
+            event_template_fields: {
+              include: {
+                field: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with slug "${slug}" not found`);
+    }
+
+    return event;
+  }
+
   async update(id: string, updateEventDto: UpdateEventDto) {
     const current = await this.findOne(id);
 

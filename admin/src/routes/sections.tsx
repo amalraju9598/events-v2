@@ -24,6 +24,7 @@ export const TemplatesPreviewPage = lazy(() => import('src/pages/templates-previ
 export const FieldsPage = lazy(() => import('src/pages/fields'));
 export const EventsPage = lazy(() => import('src/pages/events'));
 export const EventDetailsPage = lazy(() => import('src/pages/event-details'));
+export const PublicEventPage = lazy(() => import('src/pages/public-event'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -77,6 +78,14 @@ export const routesSection: RouteObject[] = [
           <SignInPage />
         </AuthLayout>
       </GuestRoute>
+    ),
+  },
+  {
+    path: 'e/:slug',
+    element: (
+      <Suspense fallback={renderFallback()}>
+        <PublicEventPage />
+      </Suspense>
     ),
   },
   {

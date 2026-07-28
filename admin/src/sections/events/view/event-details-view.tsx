@@ -224,6 +224,13 @@ export function EventDetailsView() {
     }
   };
 
+  const handleShare = () => {
+    if (!eventData) return;
+    const shareUrl = `${window.location.origin}/e/${eventData.slug}`;
+    navigator.clipboard.writeText(shareUrl);
+    alert(`Link copied to clipboard:\n${shareUrl}`);
+  };
+
   if (loading && !eventData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -402,6 +409,14 @@ export function EventDetailsView() {
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1.5}>
+                    <Button
+                      variant="outlined"
+                      color="info"
+                      startIcon={<Iconify icon={"solar:share-bold" as any} />}
+                      onClick={handleShare}
+                    >
+                      Share Link
+                    </Button>
                     <Button
                       variant="outlined"
                       color="inherit"
