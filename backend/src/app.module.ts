@@ -9,6 +9,7 @@ import { TemplatesModule } from './templates/templates.module';
 import { FieldsModule } from './fields/fields.module';
 import { EventsModule } from './events/events.module';
 import { UploadModule } from './upload/upload.module';
+import { DbModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UploadModule } from './upload/upload.module';
     FieldsModule,
     EventsModule,
     UploadModule,
+    DbModule,
   ],
   controllers: [AppController],
   providers: [AppService],
